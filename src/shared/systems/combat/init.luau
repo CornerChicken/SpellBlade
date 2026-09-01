@@ -44,6 +44,7 @@ local pendingDodges = {}
 local pendingParries = {}
 
 Remotes.Attack.OnServerEvent:Connect(function(player)
+    print(player.Name, "requested an attack")
     table.insert(pendingAttacks, player)
 end)
 
@@ -52,6 +53,7 @@ Remotes.Dodge.OnServerEvent:Connect(function(player)
 end)
 
 Remotes.Parry.OnServerEvent:Connect(function(player)
+    print(player.Name, "requested a parry")
     table.insert(pendingParries, player)
 end)
 

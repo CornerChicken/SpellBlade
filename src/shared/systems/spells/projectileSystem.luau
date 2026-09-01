@@ -30,6 +30,7 @@ local function projectileSystem(world, resources)
 	for entityId, transform, projectile, payload in world:query(Transform, Projectile, DamagePayload) do
 		-- 1. Expire old projectiles
 		if now - projectile.spawnedAt >= projectile.lifetime then
+			cleanupProjectileVisual(world, entityId)
 			world:despawn(entityId)
 			continue
 		end
