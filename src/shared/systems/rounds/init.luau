@@ -45,7 +45,6 @@ local function RoundSystem(world)
                 if newScoreA >= 3 or newScoreB >= 3 then
                     phase = "MatchOver" 
                 end
-
                 world:insert(stateId, roundState:patch({
                     scoreA = newScoreA,
                     scoreB = newScoreB,

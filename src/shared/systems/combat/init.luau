@@ -3,11 +3,15 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Components = require(ReplicatedStorage.Shared.components)
 local Remotes = require(ReplicatedStorage.Shared.remotes)
 
+for name, comp in Components do
+    print(name, type(comp))
+end
+
 local ATTACK_RANGE = 8
 local ATTACK_DAMAGE = 10
 local STUN_DURATION = 1.2
-local DODGE_SPEED = 40
-local DODGE_DURATION = 0.25
+local DODGE_DISTANCE = 8
+local DODGE_DURATION = 0.15
 local PARRY_DURATION = 0.3
 
 local function findEntityForPlayer(world, player) --Helper function to find which ECS entity id belongs to them
@@ -33,14 +37,17 @@ local pendingDodges = {}
 local pendingParries = {}
 
 Remotes.Attack.OnServerEvent:Connect(function(player)
+    print(player.Name .. " requested an attack")
     table.insert(pendingAttacks, player)
 end)
 
 Remotes.Dodge.OnServerEvent:Connect(function(player)
+    print(player.Name .. " requested a dodge")
     table.insert(pendingDodges, player)
 end)
 
 Remotes.Parry.OnServerEvent:Connect(function(player)
+    print(player.Name .. " requested a parry")
     table.insert(pendingParries, player)
 end)
 
@@ -66,7 +73,7 @@ local function CombatSystem(world)
             local targetId = getOpponent(world, id)
             if targetId then
                 local targetState = world:get(targetId, Components.CombatState)
-                local attackerHRP = owner.player.Character and owner.plyer.Character:FindFirstChild("HumanoidRootPart")
+                local attackerHRP = owner.player.Character and owner.player.Character:FindFirstChild("HumanoidRootPart")
                 local targetOwner = world:get(targetId, Components.Owner)
                 local targetHRP = targetOwner and targetOwner.player.Character and targetOwner.player.Character:FindFirstChild("HumanoidRootPart")
 
@@ -94,7 +101,7 @@ local function CombatSystem(world)
         end
     end
 
-    for _, player in pendingDodges do --Handle Dodges
+    for _, player in pendingDodges do
         local id = findEntityForPlayer(world, player)
         if id then
             local state = world:get(id, Components.CombatState)
@@ -102,14 +109,27 @@ local function CombatSystem(world)
             if state.state == "Idle" and stamina.current >= 20 then
                 local owner = world:get(id, Components.Owner)
                 local hrp = owner.player.Character and owner.player.Character:FindFirstChild("HumanoidRootPart")
-                local direction = hrp and hrp.CFrame.LookVector * DODGE_SPEED or Vector3.new(0, 0, 0) --LookVector is a unit vector pointing whichever way the character currently is facing
+                local humanoid = owner.player.Character and owner.player.Character:FindFirstChildOfClass("Humanoid")
+                if hrp and humanoid then
+                    local moveDir = humanoid.MoveDirection
 
-                world:insert(id, Components.DodgeVelocity({
-                    direction = direction,
-                    endsAt = os.clock() + DODGE_DURATION,
-                }))
-                world:insert(id, state:patch({ state = "Dodging"}))
-                world:insert(id, stamina:patch({ current = stamina.current - 20}))
+                    local dodgeDirection
+                    if moveDir.Magnitude > 0.1 then
+                        dodgeDirection = moveDir.Unit
+                    else
+                        dodgeDirection = hrp.CFrame.LookVector
+                    end
+
+                    world:insert(id, Components.DodgeVelocity({
+                        direction = dodgeDirection,
+                        speed = DODGE_DISTANCE / DODGE_DURATION,
+                        endsAt = os.clock() + DODGE_DURATION,
+                    }))
+                    world:insert(id, state:patch({ state = "Dodging" }))
+                    world:insert(id, stamina:patch({ current = stamina.current - 20 }))
+
+                    humanoid.WalkSpeed = 0
+                end
             end
         end
     end

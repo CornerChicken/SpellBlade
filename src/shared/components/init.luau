@@ -34,8 +34,14 @@ components.AttackWindup = Matter.component("AttackWindup", {
     damage = 20,
 })
 
+components.ParryWindow = Matter.component("ParryWindow", {
+    startedAt = 0,
+    duration = 0.3,
+})
+
 components.DodgeVelocity = Matter.component("DodgeVelocity", {
-    direction = Vector3.new(0, 0, 0),
+    direction = Vector3.new(0, 0, 0), -- unit vector (length 1), which way to dash
+    speed = 0,                         -- studs per second
     endsAt = 0,
 })
 

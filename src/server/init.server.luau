@@ -7,8 +7,8 @@ local Components = require(ReplicatedStorage.Shared.components)
 
 local MovementSystem = require(ReplicatedStorage.Shared.systems.movement)
 local CombatSystem = require(ReplicatedStorage.Shared.systems.combat)
-local StunSystem = require(ReplicatedStorage.Shared.systems.stun)
-local RoundSystem = require(ReplicatedStorage.Shared.systems.round)
+local StunSystem = require(ReplicatedStorage.Shared.systems.combat.stun)
+local RoundSystem = require(ReplicatedStorage.Shared.systems.rounds)
 
 local world = Matter.World.new() --World is database that holds every entity and its component.There is one on the server and a separate one on each client
 local loop = Matter.Loop.new(world) -- Loop calls your systems every frame in order
