@@ -13,7 +13,6 @@ local Mouse = LocalPlayer:GetMouse()
 -- System modules
 local cooldownUISystem = require(ReplicatedStorage.Shared.systems.vfx.cooldownUISystem)
 local vfxSystem = require(ReplicatedStorage.Shared.systems.vfx.vfxSystem)
-local renderSystem = require(ReplicatedStorage.Shared.systems.vfx.renderSystem)
 
 local SPELL_KEYBINDS: { [Enum.KeyCode]: string } = {
 	[Enum.KeyCode.One] = "Fireball",
@@ -65,7 +64,6 @@ end
 
 loop:scheduleSystems({
 	resolveLocalPlayerSystem,
-	renderSystem,
 	vfxSystem,
 	cooldownUISystem,
 })
