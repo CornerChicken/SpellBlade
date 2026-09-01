@@ -1,13 +1,17 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
 local Components = require(ReplicatedStorage.Shared.components)
+local DodgeVelocity = require(ReplicatedStorage.Shared.components.DodgeVelocity)
+local CombatState = require(ReplicatedStorage.Shared.components.CombatState)
+local Owner = require(ReplicatedStorage.Shared.components.Owner)
 
 local NORMAL_WALK_SPEED = 16 -- 💡 Roblox's default Humanoid walk speed
 
 local function MovementSystem(world)
     local now = os.clock()
 
-    for id, dodge, combatState in world:query(Components.DodgeVelocity, Components.CombatState) do
-        local owner = world:get(id, Components.Owner)
+    for id, dodge, combatState in world:query(DodgeVelocity, CombatState) do
+        local owner = world:get(id, Owner)
         local character = owner and owner.player and owner.player.Character
         local hrp = character and character:FindFirstChild("HumanoidRootPart")
         if not hrp then continue end
@@ -23,7 +27,7 @@ local function MovementSystem(world)
                 humanoid.WalkSpeed = NORMAL_WALK_SPEED
             end
 
-            world:remove(id, Components.DodgeVelocity)
+            world:remove(id, DodgeVelocity)
             world:insert(id, combatState:patch({ state = "Idle" }))
         else
             if not hrp:FindFirstChild("DodgeVelocity") then
