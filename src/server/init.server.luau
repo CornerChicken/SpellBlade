@@ -43,26 +43,27 @@ loop:begin({
     default = RunService.Heartbeat, --RunService.Heartbeat is a signal that fires every frame, and is the best place to run game logic. Default means run all scheduled systems on this event
 })
 
-local function onCharacterAdded() -- world:spawn creates a new entity and attaches all components to it in one go. Each components.X() call creates an instance of that component with specified values
-    world:spawn(
-        Components.CharacterTag()
-    )
+local function onCharacterAdded(player)
+    local playerEntity = PlayerToEntityMap[player]
+    if playerEntity then
+        world:insert(playerEntity, Components.CharacterTag())
+        world:insert(playerEntity, WeaponEquipped({ weaponId = "basicSword" }))
+    end
 end
 
 Players.PlayerAdded:Connect(function(player)
     local playerEntity = world:spawn(
-		-- Give them player components
-		    Owner({ player = player }),
-		    Health({ current = 100, max = 100 }),
-		    Stamina({ current = 100, max = 100 }),
-		    CombatState({ state = "Idle" }),
-		    SpellCooldowns({ map = {} })
-	)
+        Owner({ player = player }),
+        Health({ current = 100, max = 100 }),
+        Stamina({ current = 100, max = 100 }),
+        CombatState({ state = "Idle" }),
+        SpellCooldowns({ map = {} })
+    )
 
     PlayerToEntityMap[player] = playerEntity
 
     player.CharacterAdded:Connect(function()
-        onCharacterAdded()
+        onCharacterAdded(player)
     end)
 end)
 
