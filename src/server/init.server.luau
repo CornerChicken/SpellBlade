@@ -34,6 +34,7 @@ loop:scheduleSystems({ --Order matters, such that we want stun resolved before c
     CooldownSystem,
 	MovementSystem,
     CombatSystem,
+    HealthSyncSystem,
 	SpellCastSystem,
 	ProjectilesSystem,
     StunSystem,
