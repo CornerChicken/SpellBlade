@@ -1,4 +1,5 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
@@ -21,6 +22,7 @@ local RoundSystem = require(ReplicatedStorage.Shared.systems.rounds)
 local CooldownSystem = require(ReplicatedStorage.Shared.systems.spells.cooldownSystem)
 local SpellCastSystem = require(ReplicatedStorage.Shared.systems.spells.spellCastSystem)
 local ProjectilesSystem = require(ReplicatedStorage.Shared.systems.spells.projectileSystem)
+local TransformSystem = require(ServerScriptService.Server.systems.transformSystem)
 
 local world = Matter.World.new() --World is database that holds every entity and its component.There is one on the server and a separate one on each client
 local loop = Matter.Loop.new(world) -- Loop calls your systems every frame in order
@@ -35,6 +37,7 @@ loop:scheduleSystems({ --Order matters, such that we want stun resolved before c
     CombatSystem,
 	SpellCastSystem,
 	ProjectilesSystem,
+	TransformSystem,
     StunSystem,
     RoundSystem,
 })
@@ -43,27 +46,26 @@ loop:begin({
     default = RunService.Heartbeat, --RunService.Heartbeat is a signal that fires every frame, and is the best place to run game logic. Default means run all scheduled systems on this event
 })
 
-local function onCharacterAdded(player)
-    local playerEntity = PlayerToEntityMap[player]
-    if playerEntity then
-        world:insert(playerEntity, Components.CharacterTag())
-        world:insert(playerEntity, WeaponEquipped({ weaponId = "basicSword" }))
-    end
+local function onCharacterAdded() -- world:spawn creates a new entity and attaches all components to it in one go. Each components.X() call creates an instance of that component with specified values
+    world:spawn(
+        Components.CharacterTag()
+    )
 end
 
 Players.PlayerAdded:Connect(function(player)
     local playerEntity = world:spawn(
-        Owner({ player = player }),
-        Health({ current = 100, max = 100 }),
-        Stamina({ current = 100, max = 100 }),
-        CombatState({ state = "Idle" }),
-        SpellCooldowns({ map = {} })
-    )
+		-- Give them player components
+		    Owner({ player = player }),
+		    Health({ current = 100, max = 100 }),
+		    Stamina({ current = 100, max = 100 }),
+		    CombatState({ state = "Idle" }),
+		    SpellCooldowns({ map = {} })
+	)
 
     PlayerToEntityMap[player] = playerEntity
 
     player.CharacterAdded:Connect(function()
-        onCharacterAdded(player)
+        onCharacterAdded()
     end)
 end)
 
