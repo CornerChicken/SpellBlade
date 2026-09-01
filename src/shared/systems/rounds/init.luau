@@ -1,5 +1,10 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
 local Components = require(ReplicatedStorage.Shared.components)
+local Owner = require(ReplicatedStorage.Shared.components.Owner)
+local RoundState = require(ReplicatedStorage.Shared.components.RoundState)
+local Health = require(ReplicatedStorage.Shared.components.Health)
+local Stamina = require(ReplicatedStorage.Shared.components.Stamina)
 
 local ROUND_RESET_DELAY = 3 --seconds to pause on a dead screen before resetting
 
@@ -7,18 +12,18 @@ local matchRoundStateId = nil --Only need one roundstate entity, so track its id
 
 local function ensureRoundState(world)
     if matchRoundStateId == nil then
-        matchRoundStateId = world:spawn(Components.RoundState({})) --Empty table means to use the defaults
+        matchRoundStateId = world:spawn(RoundState({})) --Empty table means to use the defaults
     end
     return matchRoundStateId
 end
 
 local function respawnAll(world)
-    for id, owner in world:query(Components.Owner) do
-        local health = world:get(id, Components.Health)
+    for id, owner in world:query(Owner) do
+        local health = world:get(id, Health)
         world:insert(id, health:patch({ current = health.max })) --Reset health to max
-        local stamina = world:get(id, Components.Stamina)
+        local stamina = world:get(id, Stamina)
         world:insert(id, stamina:patch({ current = stamina.max })) --Reset stamina to max
-        if owner.player.Chjaracter then
+        if owner.player.Character then
             owner.player.Character:PivotTo(CFrame.new(0, 5, 0)) --Move character to spawn point. Replace (0, 5, 0) with your actual spawn points later
         end
     end
@@ -26,13 +31,13 @@ end
 
 local function RoundSystem(world)
     local stateId = ensureRoundState(world)
-    local roundState = world:get(stateId, Components.RoundState)
+    local roundState = world:get(stateId, RoundState)
 
     if roundState.phase == "Fighting" then
-        for id, health, owner in world:query(Components.Health, Components.Owner) do
+        for id, health, owner in world:query(Health, Owner) do
             if health.current <= 0 then
                 local winnerIsA = false
-                for otherId, otherHealth in world:query(Components.Health) do
+                for otherId, otherHealth in world:query(Health) do
                     if otherId ~= id and otherHealth.current > 0 then
                         winnerIsA = true
                     end
